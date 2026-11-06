@@ -5,6 +5,7 @@ beautifulsoup4>=4.12
 tldextract>=5.1
 python-whois>=0.9
 python-dotenv>=1.0
+a2wsgi>=1.10       # cPanel / Passenger (WSGI) support
 anthropic>=0.40   # optional: LLM review
 pytest>=8.0
 # optional, for rendering JavaScript pages (set USE_BROWSER=true):

@@ -1,7 +1,7 @@
-# Hakiki — link & ad checker
+# Hakikisha — link & ad checker
 
-A WhatsApp bot that checks links and ads from Facebook, TikTok and Instagram **before** someone pays.
-Forward a link, or paste the ad text, and Hakiki replies in English or Swahili with a risk level,
+A web page and WhatsApp bot that checks links and ads from Facebook, TikTok and Instagram **before** someone pays.
+Forward a link, or paste the ad text, and Hakikisha replies in English or Swahili with a risk level,
 the main reasons, and what to do.
 
 ```
@@ -36,7 +36,9 @@ WhatsApp message ─► resolver ─► link checks ─┐
 | `app/checks/llm.py` | Optional Claude review of the page text, returning JSON flags |
 | `app/db.py` | Reported/confirmed scam domains, links, phones and tills; log of checks |
 | `app/scoring.py` | Weighted score → `high / caution / low / unverified`; reply text |
-| `app/main.py` | FastAPI: `/webhook` (WhatsApp), `/check` (JSON), `/admin/indicators` |
+| `app/main.py` | FastAPI: `/webhook` (WhatsApp), `/check` (JSON), `/admin/indicators`; serves `docs/` at `/` |
+| `docs/` | The web page (`index.html`) and in-browser checker (`checker.js`) |
+| `passenger_wsgi.py` | Entry point for cPanel / Passenger |
 
 \* Advertiser/Page-transparency checks are the next phase (see roadmap). Meta's Ad Library API
 does not return commercial ads shown outside the EU/UK, so this MVP works from what the user sends.
@@ -55,6 +57,24 @@ curl -X POST localhost:8000/check -H 'content-type: application/json' -d '{"text
 ```
 
 Without `WHATSAPP_TOKEN` the bot runs in dry-run mode and logs replies instead of sending them.
+
+## Deploy
+
+| Where | What runs | Guide |
+|---|---|---|
+| **cPanel** (recommended) | Web page + full checks + WhatsApp bot, one Python app | [DEPLOY_CPANEL.md](DEPLOY_CPANEL.md) |
+| **GitHub Pages** | Web page only; checks run in the visitor's browser (ad text + link address, no website fetching) | below |
+
+### GitHub Pages
+
+Repo *Settings* → *Pages* → *Deploy from a branch* → `main` / `/docs` → Save.
+The site appears at `https://oak-ke.github.io/Hakikisha/`.
+
+To give the Pages site the full checks, set `window.HAKIKISHA_API` in `docs/config.js` to your
+backend address (e.g. `https://check.nobaloak.co.ke`). The backend already allows
+`https://oak-ke.github.io` via `ALLOWED_ORIGINS`.
+
+The in-browser rules in `docs/checker.js` mirror the Python rules. Update both when you add rules.
 
 ## Connect WhatsApp
 

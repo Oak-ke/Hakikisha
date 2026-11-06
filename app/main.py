@@ -3,9 +3,12 @@ import json
 import logging
 from collections import OrderedDict
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException, Request
-from fastapi.responses import PlainTextResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, Response
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .checks.domain import registered_domain
@@ -50,7 +53,23 @@ async def lifespan(_app):
     yield
 
 
-app = FastAPI(title="Hakiki — link & ad checker", lifespan=lifespan)
+app = FastAPI(title="Hakikisha — link & ad checker", lifespan=lifespan)
+
+# Lets the GitHub Pages site (or another domain) call /check on this server.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_methods=["POST"],
+    allow_headers=["content-type"],
+)
+
+DOCS_DIR = Path(__file__).resolve().parent.parent / "docs"
+
+
+@app.get("/config.js", include_in_schema=False)
+def site_config():
+    """When the web page is served by this backend, point it at this backend ('.' = same place)."""
+    return Response('window.HAKIKISHA_API = ".";\n', media_type="application/javascript")
 
 
 @app.get("/health")
@@ -164,3 +183,8 @@ def set_indicator(payload: IndicatorIn, x_admin_token: str = Header(default=""))
         raise HTTPException(status_code=422, detail="bad kind or status")
     get_db().set_status(payload.kind, payload.value, payload.status, payload.note)
     return {"ok": True}
+
+
+# Serve the web page (docs/) at "/". Mounted last so the API routes above take priority.
+if DOCS_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=DOCS_DIR, html=True), name="site")

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hakikisha — check a link or ad before you pay</title>
+<meta name="description" content="Paste a link or ad from Facebook, TikTok or Instagram and see the scam warning signs before you pay. English and Swahili.">
+<style>
+  :root {
+    --ink: #1d2320; --muted: #5b6460; --line: #d9dfdb; --bg: #f6f4ee; --card: #ffffff;
+    --brand: #14532d; --brand-ink: #ffffff;
+    --high: #b42318; --high-bg: #fdecea; --caution: #a15c07; --caution-bg: #fff4e0;
+    --low: #1a7f37; --low-bg: #e8f5ec; --unv: #475467; --unv-bg: #eef0f2;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 18px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         color: var(--ink); background: var(--bg); }
+  main { max-width: 640px; margin: 0 auto; padding: 24px 18px 48px; }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .logo { font-weight: 700; font-size: 22px; color: var(--brand); letter-spacing: .2px; }
+  .lang { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .lang button { border: 0; background: transparent; padding: 6px 14px; font: inherit; font-size: 15px;
+                 cursor: pointer; color: var(--muted); }
+  .lang button[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); }
+  h1 { font-size: 28px; line-height: 1.25; margin: 28px 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  textarea { width: 100%; min-height: 140px; padding: 14px; font: inherit; border: 1.5px solid var(--line);
+             border-radius: 12px; background: var(--card); resize: vertical; }
+  textarea:focus { outline: 3px solid #bbf7d0; border-color: var(--brand); }
+  .row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { flex: 1; min-width: 140px; padding: 14px 18px; font: inherit; font-weight: 600; border-radius: 12px;
+         border: 0; cursor: pointer; background: var(--brand); color: var(--brand-ink); }
+  .btn.secondary { flex: 0; background: transparent; color: var(--brand); border: 1.5px solid var(--brand); }
+  .error { color: var(--high); font-size: 15px; margin-top: 8px; min-height: 1em; }
+  .result { margin-top: 22px; border-radius: 14px; padding: 18px 18px 14px; border: 1.5px solid; background: var(--card); }
+  .result.high { border-color: var(--high); background: var(--high-bg); }
+  .result.caution { border-color: var(--caution); background: var(--caution-bg); }
+  .result.low { border-color: var(--low); background: var(--low-bg); }
+  .result.unverified { border-color: var(--unv); background: var(--unv-bg); }
+  .verdict { font-size: 22px; font-weight: 700; margin: 0; }
+  .high .verdict { color: var(--high); } .caution .verdict { color: var(--caution); }
+  .low .verdict { color: var(--low); } .unverified .verdict { color: var(--unv); }
+  .target { color: var(--muted); font-size: 15px; word-break: break-all; margin: 2px 0 10px; }
+  .result ul { margin: 0 0 12px; padding-left: 22px; }
+  .action { font-weight: 600; margin: 0 0 6px; }
+  .meta { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+  .entities { font-size: 15px; margin: 0 0 10px; }
+  section.tips { margin-top: 36px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  section.tips h2 { font-size: 19px; margin: 0 0 8px; }
+  section.tips ul { margin: 0; padding-left: 22px; }
+  section.tips li { margin: 4px 0; }
+  footer { margin-top: 28px; font-size: 14px; color: var(--muted); }
+  footer a { color: var(--brand); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo">Hakikisha</div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="sw" aria-pressed="false">Kiswahili</button>
+    </div>
+  </header>
+
+  <h1 data-i18n="title">Check a link or ad before you pay</h1>
+  <p class="sub" data-i18n="sub">Paste a link or the words of an ad from Facebook, TikTok, Instagram or WhatsApp.</p>
+
+  <label for="input" class="sub" style="display:none">Link or ad text</label>
+  <textarea id="input" data-i18n-ph="placeholder"
+    placeholder="e.g. https://bit.ly/… or “100% natural cure for prostate in 7 days…”"></textarea>
+  <div class="error" id="error" role="alert"></div>
+  <div class="row">
+    <button class="btn" id="check" data-i18n="check">Check it</button>
+    <button class="btn secondary" id="clear" data-i18n="clear">Clear</button>
+  </div>
+
+  <div id="results" aria-live="polite"></div>
+
+  <section class="tips">
+    <h2 data-i18n="tipsTitle">Simple rules that stop most scams</h2>
+    <ul id="tips"></ul>
+  </section>
+
+  <footer>
+    <p data-i18n="disclaimer">Hakikisha looks for warning signs. A clean result is not proof that something is genuine.</p>
+    <p><span data-i18n="pharmacy">Check a pharmacy on the</span>
+      <a href="https://pharmacyboardkenya.org" target="_blank" rel="noopener">Pharmacy and Poisons Board</a> ·
+      <a href="https://github.com/Oak-ke/Hakikisha" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+</main>
+
+<script src="config.js"></script>
+<script src="checker.js"></script>
+<script>
+(function () {
+  "use strict";
+  const T = {
+    en: {
+      title: "Check a link or ad before you pay",
+      sub: "Paste a link or the words of an ad from Facebook, TikTok, Instagram or WhatsApp.",
+      placeholder: "e.g. https://bit.ly/… or “100% natural cure for prostate in 7 days…”",
+      check: "Check it", clear: "Clear", checking: "Checking…",
+      empty: "Paste a link or some ad text first.",
+      tipsTitle: "Simple rules that stop most scams",
+      tips: ["Never buy medicine from a social media ad — go to a licensed pharmacy.",
+             "Never send M-Pesa to a stranger before you receive the goods.",
+             "Famous doctors and TV presenters in ads are often fake videos.",
+             "“Only 3 left” and “offer ends today” are pressure tricks.",
+             "When unsure, call a family member before you pay."],
+      disclaimer: "Hakikisha looks for warning signs. A clean result is not proof that something is genuine.",
+      pharmacy: "Check a pharmacy on the",
+      numbers: "Numbers in this ad", phone: "Phone", till: "Till",
+      browserOnly: "Quick check in your browser. The website itself was not opened.",
+      deep: "Full check: the website was opened and tested.",
+      head: { high: "🔴 High risk — likely a scam", caution: "🟠 Be careful",
+              low: "🟢 No red flags found", unverified: "⚪ Couldn't check this" },
+      action: {
+        high: "Don't pay and don't share your details. Buy medicine only from a licensed pharmacy.",
+        caution: "Don't pay until the seller is checked with someone you trust or on the PPB register.",
+        low: "This is not proof it's genuine. Never pay a stranger in advance.",
+        unverified: "The site didn't load or couldn't be checked. Treat it with care." },
+    },
+    sw: {
+      title: "Kagua kiungo au tangazo kabla hujalipa",
+      sub: "Bandika kiungo au maneno ya tangazo kutoka Facebook, TikTok, Instagram au WhatsApp.",
+      placeholder: "mf. https://bit.ly/… au “Dawa ya asili ya tezi dume, pona kabisa…”",
+      check: "Kagua", clear: "Futa", checking: "Inakagua…",
+      empty: "Bandika kiungo au maneno ya tangazo kwanza.",
+      tipsTitle: "Kanuni rahisi zinazozuia utapeli mwingi",
+      tips: ["Usinunue dawa kutoka tangazo la mitandao — nenda famasia iliyosajiliwa.",
+             "Usimtumie mgeni M-Pesa kabla ya kupokea bidhaa.",
+             "Madaktari na watangazaji maarufu kwenye matangazo mara nyingi ni video feki.",
+             "“Zimebaki 3 tu” na “ofa inaisha leo” ni mbinu za kukulazimisha.",
+             "Ukiwa na shaka, mpigie mwanafamilia kabla ya kulipa."],
+      disclaimer: "Hakikisha hutafuta dalili za hatari. Matokeo safi si uthibitisho kuwa kitu ni halali.",
+      pharmacy: "Kagua famasia kwenye",
+      numbers: "Namba kwenye tangazo hili", phone: "Simu", till: "Till",
+      browserOnly: "Ukaguzi wa haraka kwenye kivinjari chako. Tovuti yenyewe haikufunguliwa.",
+      deep: "Ukaguzi kamili: tovuti ilifunguliwa na kukaguliwa.",
+      head: { high: "🔴 Hatari kubwa — huenda ni utapeli", caution: "🟠 Kuwa mwangalifu",
+              low: "🟢 Hakuna dalili za hatari zilizopatikana", unverified: "⚪ Haikuweza kukaguliwa" },
+      action: {
+        high: "Usilipe wala usitoe taarifa zako. Nunua dawa kwa famasia iliyosajiliwa tu.",
+        caution: "Usilipe hadi muuzaji athibitishwe na mtu unayemwamini au kwenye orodha ya PPB.",
+        low: "Hii si uthibitisho kuwa ni halali. Usimlipe mgeni pesa mapema.",
+        unverified: "Tovuti haikufunguka au haikuweza kukaguliwa. Kuwa mwangalifu." },
+    },
+  };
+
+  const $ = (id) => document.getElementById(id);
+  let lang = "en";
+  let last = null;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function setLang(l) {
+    lang = l;
+    document.documentElement.lang = l;
+    document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.lang === l));
+    document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = T[l][el.dataset.i18n]; });
+    document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = T[l][el.dataset.i18nPh]; });
+    $("tips").innerHTML = T[l].tips.map((t) => `<li>${esc(t)}</li>`).join("");
+    if (last) render(last);
+  }
+
+  function render(results) {
+    last = results;
+    const t = T[lang];
+    $("results").innerHTML = results.map((r) => {
+      const top = [...r.signals].sort((a, b) => b.weight - a.weight).slice(0, 3);
+      const reasons = top.map((s) => `<li>${esc(lang === "sw" ? s.sw : s.en)}</li>`).join("");
+      const ent = r.entities || {};
+      const nums = [
+        ...(ent.phone || []).map((p) => `${t.phone}: +${esc(p)}`),
+        ...(ent.till || []).map((x) => `${t.till}: ${esc(x)}`),
+      ];
+      return `<div class="result ${esc(r.level)}">
+        <p class="verdict">${esc(t.head[r.level])}</p>
+        <p class="target">${esc(r.label)}</p>
+        ${reasons ? `<ul>${reasons}</ul>` : ""}
+        ${nums.length ? `<p class="entities"><strong>${esc(t.numbers)}:</strong> ${nums.join(" · ")}</p>` : ""}
+        <p class="action">${esc(t.action[r.level])}</p>
+        <p class="meta">${esc(r.mode === "server" ? t.deep : t.browserOnly)}</p>
+      </div>`;
+    }).join("");
+  }
+
+  async function serverCheck(text) {
+    const base = (window.HAKIKISHA_API || "").replace(/\/+$/, "");
+    if (!base) return null;
+    try {
+      const res = await fetch(base + "/check", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text, lang }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.results.map((r) => {
+        let label = r.input;
+        try { if (r.final_url) label = new URL(r.final_url).hostname; } catch (e) { /* keep input */ }
+        return { ...r, label: label.length > 60 ? label.slice(0, 60) + "…" : label, mode: "server" };
+      });
+    } catch (e) {
+      return null; // backend asleep or unreachable — fall back to the browser check
+    }
+  }
+
+  async function run() {
+    const text = $("input").value.trim();
+    if (!text) { $("error").textContent = T[lang].empty; return; }
+    $("error").textContent = "";
+    const btn = $("check");
+    btn.disabled = true; btn.textContent = T[lang].checking;
+    try {
+      render((await serverCheck(text)) || Hakikisha.check(text));
+    } finally {
+      btn.disabled = false; btn.textContent = T[lang].check;
+    }
+  }
+
+  document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
+  $("check").addEventListener("click", run);
+  $("input").addEventListener("input", () => { $("error").textContent = ""; });
+  $("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) run(); });
+  $("clear").addEventListener("click", () => { $("input").value = ""; $("results").innerHTML = ""; last = null; $("input").focus(); });
+
+  const params = new URLSearchParams(location.search);
+  setLang(params.get("lang") === "sw" || (navigator.language || "").startsWith("sw") ? "sw" : "en");
+  if (params.get("q")) { $("input").value = params.get("q"); run(); }
+})();
+</script>
+</body>
+</html>

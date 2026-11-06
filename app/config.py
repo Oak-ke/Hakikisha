@@ -31,6 +31,9 @@ class Settings:
     ENABLE_WHOIS = _bool("ENABLE_WHOIS", True)
     DB_PATH = os.getenv("DB_PATH", "hakiki.db")
     ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "")
+    # Web pages on other domains allowed to call /check (comma-separated)
+    ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
+        "ALLOWED_ORIGINS", "https://oak-ke.github.io").split(",") if o.strip()]
 
 
 settings = Settings()

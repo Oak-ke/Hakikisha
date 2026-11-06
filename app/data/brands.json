@@ -1,0 +1,16 @@
+{
+  "_note": "Brands scammers impersonate, mapped to their official domains. VERIFY every domain before production and extend the list.",
+  "brands": {
+    "safaricom": ["safaricom.co.ke", "safaricom.com"],
+    "mpesa": ["safaricom.co.ke"],
+    "citizen": ["citizen.digital"],
+    "nation": ["nation.africa"],
+    "standardmedia": ["standardmedia.co.ke"],
+    "ecitizen": ["ecitizen.go.ke"],
+    "pharmacyboard": ["pharmacyboardkenya.org"],
+    "kmpdc": ["kmpdc.go.ke"],
+    "equitybank": ["equitybank.co.ke"],
+    "kcbgroup": ["kcbgroup.com"]
+  },
+  "gov_keywords": ["ministry", "government", "gov-ke", "govke", "moh-kenya", "kenyagov"]
+}
